@@ -278,14 +278,14 @@ final class I<A>: AnyI, Node {
 enum IList<A> {
     case empty
     case cons(A, I<IList<A>>)
-    
+
     mutating func append(_ value: A) {
         switch self {
         case .empty: self = .cons(value, I(value: .empty))
         case .cons(_, let tail): tail.value.append(value)
         }
     }
-    
+
     func reduceH<B>(destination: I<B>, initial: B, combine: @escaping (A,B) -> B) -> [Node] {
         switch self {
         case .empty:
@@ -293,10 +293,9 @@ enum IList<A> {
             return [destination]
         case let .cons(value, tail):
             let intermediate = combine(value, initial)
-            let (reader, disposable) = tail.read { newTail in
+            let reader = tail.read(target: destination) { newTail in
                 return newTail.reduceH(destination: destination, initial: intermediate, combine: combine)
             }
-            tail.strongReferences.add(disposable)
             return [reader]
         }
     }

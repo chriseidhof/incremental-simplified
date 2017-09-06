@@ -9,6 +9,7 @@ struct Register<A> {
         freshNumber = { iterator.next()! }
     }
     
+    @discardableResult
     mutating func add(_ value: A) -> Token {
         let token = freshNumber()
         items[token] = value
@@ -78,10 +79,8 @@ struct Height: CustomStringConvertible, Comparable {
     }
 }
 
-protocol AnyI: class {
-    var firedAlready: Bool { get set }
-}
 
+// This class is not thread-safe
 final class Queue {
     static let shared = Queue()
     var edges: [Edge] = []
@@ -108,6 +107,8 @@ final class Queue {
             processed.append(edge)
             edge.fire()
         }
+        
+        // cleanup
         for i in fired {
             i.firedAlready = false
         }
@@ -166,6 +167,11 @@ class Reader: Node, Edge {
     }
 }
 
+protocol AnyI: class {
+    var firedAlready: Bool { get set }
+    var strongReferences: Register<Any> { get set }
+}
+
 final class I<A>: AnyI, Node {
     fileprivate var value: A!
     var observers = Register<Observer>()
@@ -174,7 +180,7 @@ final class I<A>: AnyI, Node {
         return readers.values.map { $0.height }.lub.incremented()
     }
     var firedAlready: Bool = false
-    fileprivate var strongReferences: Register<Any> = Register()
+    var strongReferences: Register<Any> = Register()
     
     init(value: A) {
         self.value = value
@@ -186,7 +192,7 @@ final class I<A>: AnyI, Node {
         let token = observers.add(Observer {
             observer(self.value)
         })
-        return Disposable { /* should this be weak/unowned*/
+        return Disposable { /* should this be weak/unowned? */
             self.observers.remove(token)
         }
     }
@@ -213,52 +219,52 @@ final class I<A>: AnyI, Node {
         })
     }
     
+    @discardableResult
+    func read(target: AnyI, _ read: @escaping (A) -> [Node]) -> Reader {
+        let (reader, disposable) = self.read(read)
+        target.strongReferences.add(disposable)
+        return reader
+    }
+    
     func map<B>(_ transform: @escaping (A) -> B) -> I<B> {
         let result = I<B>()
-        let (_, disposable) = read { value in
+        read(target: result) { value in
             let newValue = transform(value)
             result.write(newValue)
             return [result]
         }
-        result.strongReferences.add(disposable)
         return result
     }
     
     func zip<B,C>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {
         let result = I<C>()
-        var previous: (Reader, Register<Any>.Token)?
-        let (_, disposable) = read { value1 in
-            if let p = previous {
-                p.0.invalidated = true
-                result.strongReferences.remove(p.1)
-            }
-            let (reader, disposable2) = other.read { value2 in
+        var previous: Disposable?
+        read(target: result) { value1 in
+            previous = nil
+            let (reader, disposable) = other.read { value2 in
                 result.write(with(value1, value2))
                 return [result]
             }
-            previous = (reader, result.strongReferences.add(disposable2))
+            let token = result.strongReferences.add(disposable)
+            previous = Disposable { result.strongReferences.remove(token) }
             return [reader]
         }
-        _ = result.strongReferences.add(disposable)
         return result
     }
     
     func flatMap<B>(_ transform: @escaping (A) -> I<B>) -> I<B> {
-        var result = I<B>()
-        var previous: (Reader, Register<Any>.Token)?
-        let (_, disposable) = read { value in
-            if let p = previous {
-                p.0.invalidated = true
-                result.strongReferences.remove(p.1)
-            }
-            let (reader, disposable2) = transform(value).read { value2 in
+        let result = I<B>()
+        var previous: Disposable?
+        read(target: result) { value in
+            previous = nil
+            let (reader, disposable) = transform(value).read { value2 in
                 result.write(value2)
                 return [result]
             }
-            previous = (reader, result.strongReferences.add(disposable2))
+            let token = result.strongReferences.add(disposable)
+            previous = Disposable { result.strongReferences.remove(token) }
             return [reader]
         }
-        _ = result.strongReferences.add(disposable)
         return result
     }
     

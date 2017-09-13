@@ -7,28 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		83E47E0A1F56A04F00CF7E8B /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E47E091F56A04F00CF7E8B /* main.swift */; };
+		83DC8D3C1F697DA5004861BF /* Incremental.h in Headers */ = {isa = PBXBuildFile; fileRef = 83DC8D3A1F697DA5004861BF /* Incremental.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		83DC8D411F697DB5004861BF /* Incremental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83DC8D401F697DB5004861BF /* Incremental.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		83E47E041F56A04F00CF7E8B /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		83E47E061F56A04F00CF7E8B /* IncrementalSimplified */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = IncrementalSimplified; sourceTree = BUILT_PRODUCTS_DIR; };
-		83E47E091F56A04F00CF7E8B /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		83DC8D381F697DA5004861BF /* Incremental.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Incremental.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		83DC8D3A1F697DA5004861BF /* Incremental.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Incremental.h; sourceTree = "<group>"; };
+		83DC8D3B1F697DA5004861BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		83DC8D401F697DB5004861BF /* Incremental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Incremental.swift; sourceTree = "<group>"; };
+		83DC8D421F697E27004861BF /* Samples.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = Samples.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		83E47E031F56A04F00CF7E8B /* Frameworks */ = {
+		83DC8D341F697DA5004861BF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -38,10 +30,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		83DC8D391F697DA5004861BF /* Incremental */ = {
+			isa = PBXGroup;
+			children = (
+				83DC8D3A1F697DA5004861BF /* Incremental.h */,
+				83DC8D3B1F697DA5004861BF /* Info.plist */,
+				83DC8D401F697DB5004861BF /* Incremental.swift */,
+			);
+			path = Incremental;
+			sourceTree = "<group>";
+		};
 		83E47DFD1F56A04F00CF7E8B = {
 			isa = PBXGroup;
 			children = (
-				83E47E081F56A04F00CF7E8B /* IncrementalSimplified */,
+				83DC8D421F697E27004861BF /* Samples.playground */,
+				83DC8D391F697DA5004861BF /* Incremental */,
 				83E47E071F56A04F00CF7E8B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,38 +52,42 @@
 		83E47E071F56A04F00CF7E8B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				83E47E061F56A04F00CF7E8B /* IncrementalSimplified */,
+				83DC8D381F697DA5004861BF /* Incremental.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		83E47E081F56A04F00CF7E8B /* IncrementalSimplified */ = {
-			isa = PBXGroup;
-			children = (
-				83E47E091F56A04F00CF7E8B /* main.swift */,
-			);
-			path = IncrementalSimplified;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		83DC8D351F697DA5004861BF /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				83DC8D3C1F697DA5004861BF /* Incremental.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
-		83E47E051F56A04F00CF7E8B /* IncrementalSimplified */ = {
+		83DC8D371F697DA5004861BF /* Incremental */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 83E47E0D1F56A04F00CF7E8B /* Build configuration list for PBXNativeTarget "IncrementalSimplified" */;
+			buildConfigurationList = 83DC8D3F1F697DA5004861BF /* Build configuration list for PBXNativeTarget "Incremental" */;
 			buildPhases = (
-				83E47E021F56A04F00CF7E8B /* Sources */,
-				83E47E031F56A04F00CF7E8B /* Frameworks */,
-				83E47E041F56A04F00CF7E8B /* CopyFiles */,
+				83DC8D331F697DA5004861BF /* Sources */,
+				83DC8D341F697DA5004861BF /* Frameworks */,
+				83DC8D351F697DA5004861BF /* Headers */,
+				83DC8D361F697DA5004861BF /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = IncrementalSimplified;
-			productName = IncrementalSimplified;
-			productReference = 83E47E061F56A04F00CF7E8B /* IncrementalSimplified */;
-			productType = "com.apple.product-type.tool";
+			name = Incremental;
+			productName = Incremental;
+			productReference = 83DC8D381F697DA5004861BF /* Incremental.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
@@ -92,8 +99,9 @@
 				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = objc.io;
 				TargetAttributes = {
-					83E47E051F56A04F00CF7E8B = {
+					83DC8D371F697DA5004861BF = {
 						CreatedOnToolsVersion = 9.0;
+						LastSwiftMigration = 0900;
 					};
 				};
 			};
@@ -109,23 +117,84 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				83E47E051F56A04F00CF7E8B /* IncrementalSimplified */,
+				83DC8D371F697DA5004861BF /* Incremental */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		83DC8D361F697DA5004861BF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		83E47E021F56A04F00CF7E8B /* Sources */ = {
+		83DC8D331F697DA5004861BF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83E47E0A1F56A04F00CF7E8B /* main.swift in Sources */,
+				83DC8D411F697DB5004861BF /* Incremental.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		83DC8D3D1F697DA5004861BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = Incremental/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = io.objcio.Incremental;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		83DC8D3E1F697DA5004861BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = Incremental/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = io.objcio.Incremental;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		83E47E0B1F56A04F00CF7E8B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -232,41 +301,23 @@
 			};
 			name = Release;
 		};
-		83E47E0E1F56A04F00CF7E8B /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DEVELOPMENT_TEAM = SL7736T2Z4;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
-			};
-			name = Debug;
-		};
-		83E47E0F1F56A04F00CF7E8B /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				DEVELOPMENT_TEAM = SL7736T2Z4;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		83DC8D3F1F697DA5004861BF /* Build configuration list for PBXNativeTarget "Incremental" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83DC8D3D1F697DA5004861BF /* Debug */,
+				83DC8D3E1F697DA5004861BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		83E47E011F56A04F00CF7E8B /* Build configuration list for PBXProject "IncrementalSimplified" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83E47E0B1F56A04F00CF7E8B /* Debug */,
 				83E47E0C1F56A04F00CF7E8B /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		83E47E0D1F56A04F00CF7E8B /* Build configuration list for PBXNativeTarget "IncrementalSimplified" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				83E47E0E1F56A04F00CF7E8B /* Debug */,
-				83E47E0F1F56A04F00CF7E8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

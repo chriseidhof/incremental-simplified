@@ -1,6 +1,6 @@
 import Incremental
 
-//: The simplest incremental program we could write is one that adds two numbers. There are two important types in this library. First of all, `Var`, which represents writable variables.
+//: There are two important types in this library. First of all, `Var`, which represents writable variables.
 
 let x = Var(1)
 let y = Var(2)

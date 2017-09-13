@@ -40,19 +40,19 @@ let disposable2 = xOrY.observe { print("xOrY: \($0)") }
 //: If we set `x`, the observer for tripled will hit. But `xOrY` didn't change, so doesn't get fired.
 x.set(30)
 
-//: Unlike reactive libraries, Incremental doesn't have the problem of "flickering". As an example, consider creating a + operator:
+//: Unlike reactive libraries, Incremental doesn't have the problem of [glitches](https://en.wikipedia.org/wiki/Reactive_programming#Glitches). As an example, consider creating a + operator:
 
 func +(lhs: I<Int>, rhs: I<Int>) -> I<Int> {
     return lhs.zip2(rhs, +)
 }
 
 
-//: We can safely write `x.i + x.i` and observe it, without having to worry about flickering:
+//: We can safely write `x.i + x.i` and observe it, without having to worry about glitches.
 
 let disposable3 = (x.i+x.i).observe { print("x + x: \($0)") }
 x.set(7)
 
-//: (In every "normal" reactive library, the above would have printed "x + x: 60, x + x: 37, x + x: 14". The ghost value of 37 shouldn't be there, and is called a [glitch](https://en.wikipedia.org/wiki/Reactive_programming#Glitches).
+//: (In every "normal" reactive library, the above would have printed "x + x: 60, x + x: 37, x + x: 14". The ghost value of 37 shouldn't be there, but is a glitch).
 //:
 //: Of course, + also works on two different variables:
 

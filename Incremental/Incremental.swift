@@ -1,86 +1,7 @@
 import Foundation
 
-struct Register<A> {
-    typealias Token = Int
-    private var items: [Token:A] = [:]
-    private let freshNumber: () -> Int
-    init() {
-        var iterator = (0...).makeIterator()
-        freshNumber = { iterator.next()! }
-    }
-    
-    @discardableResult
-    mutating func add(_ value: A) -> Token {
-        let token = freshNumber()
-        items[token] = value
-        return token
-    }
-    
-    mutating func remove(_ token: Token) {
-        items[token] = nil
-    }
-    
-    subscript(token: Token) -> A? {
-        return items[token]
-    }
-    
-    var values: AnySequence<A> {
-        return AnySequence(items.values)
-    }
-    
-    mutating func removeAll() {
-        items = [:]
-    }
-    
-    var keys: AnySequence<Token> {
-        return AnySequence(items.keys)
-    }
-}
-
-public final class Disposable {
-    private let dispose: () -> ()
-    init(dispose: @escaping () -> ()) {
-        self.dispose = dispose
-    }
-    
-    deinit {
-        self.dispose()
-    }
-}
-
-struct Height: CustomStringConvertible, Comparable {
-    var value: Int
-    
-    init(_ value: Int = 0) {
-        self.value = value
-    }
-    
-    static let zero = Height(0)
-    static let minusOne = Height(-1) // observers
-    
-    mutating func join(_ other: Height) {
-        value = max(value, other.value)
-    }
-    
-    func incremented() -> Height {
-        return Height(value + 1)
-    }
-    
-    var description: String {
-        return "Height(\(value))"
-    }
-    
-    static func <(lhs: Height, rhs: Height) -> Bool {
-        return lhs.value < rhs.value
-    }
-    
-    static func ==(lhs: Height, rhs: Height) -> Bool {
-        return lhs.value == rhs.value
-    }
-}
-
-
-// This class is not thread-safe (and not meant to be).
+// TODO: expose an Incremental.transaction method which allows multiple writes before processing.
+// This class is (by design) not thread-safe
 final class Queue {
     static let shared = Queue()
     var edges: [(Edge, Height)] = []
@@ -88,7 +9,12 @@ final class Queue {
     var fired: [AnyI] = []
     var processing: Bool = false
     
-    func enqueue(_ edges: [Edge]){
+    func enqueue<S: Sequence>(_ edges: S) where S.Element: Edge {
+        self.edges.append(contentsOf: edges.map { ($0, $0.height) })
+        self.edges.sort { $0.1 < $1.1 }
+    }
+    
+    func enqueue<S: Sequence>(_ edges: S) where S.Element == Edge {
         self.edges.append(contentsOf: edges.map { ($0, $0.height) })
         self.edges.sort { $0.1 < $1.1 }
     }
@@ -122,12 +48,6 @@ protocol Node {
     var height: Height { get }
 }
 
-extension Array where Element == Height {
-    var lub: Height {
-        return reduce(into: .zero, { $0.join($1) })
-    }
-}
-
 protocol Edge: class, Node {
     func fire()
 }
@@ -145,9 +65,11 @@ final class Observer: Edge {
     }
 }
 
+protocol Reader: Edge {
+    var invalidated: Bool { get set }
+}
 
-
-class Reader: Node, Edge {
+class AnyReader: Reader {
     let read: () -> Node
     var height: Height {
         return target.height.incremented()
@@ -158,7 +80,7 @@ class Reader: Node, Edge {
         self.read = read
         target = read()
     }
-    
+
     func fire() {
         if invalidated {
             return
@@ -167,61 +89,127 @@ class Reader: Node, Edge {
     }
 }
 
-protocol AnyI: class {
-    var firedAlready: Bool { get set }
-    var strongReferences: Register<Any> { get set }
+// We don't need MapReader and FlatMapReader, but could express everything in terms of AnyReader. Not sure what is better: less concepts, or more (and duplicated) but clearer code.
+final class MapReader: Reader {
+    let read: () -> ()
+    unowned var target: AnyI
+    var invalidated: Bool = false
+
+    init<A,B>(source: I<A>, transform: @escaping (A) -> B, target: I<B>) {
+        read = { [unowned target] in
+            target.write(transform(source.value))
+        }
+        read()
+        self.target = target
+    }
+    var height: Height {
+        return target.height.incremented()
+    }
+    func fire() {
+        if invalidated {
+            return // todo dry
+        }
+        read()
+        
+    }
 }
 
-public final class Var<A> {
+final class FlatMapReader: Reader {
+    var read: (() -> ())!
+    unowned var target: AnyI
+    var invalidated: Bool = false {
+        didSet {
+            disposable = nil
+            sourceNode = nil
+        }
+    }
+    var sourceNode: AnyI!
+    var token: Register<Any>.Token? = nil
+    var disposable: Any?
+    
+    init<A,B>(source: I<A>, transform: @escaping (A) -> I<B>, target: I<B>) {
+        self.target = target
+        read = { [unowned target] in
+            self.disposable = nil
+            let newSourceNode = transform(source.value)
+            self.disposable = newSourceNode.addReader(MapReader(source: newSourceNode, transform: { $0 }, target: target))
+            target.write(newSourceNode.value)
+            self.sourceNode = newSourceNode // todo should this be a strong reference?
+        }
+        read()
+    }
+    var height: Height {
+        return sourceNode.height.incremented()
+    }
+    func fire() {
+        if invalidated {
+            return // todo dry
+        }
+        read()
+        
+    }
+}
+
+
+public final class Input<A> {
     public let i: I<A>
     
-    public init(_ value: A, eq: @escaping (A,A) -> Bool) {
-        i = I(value: value, eq: eq)
+    public init(eq: @escaping (A,A) -> Bool, _ value: A) {
+        i = I(eq: eq, value: value)
     }
     
-    public func set(_ newValue: A) {
+    public init(alwaysPropagate value: A) {
+        i = I(eq: { _, _ in false }, value: value)
+    }
+    
+    public func write(_ newValue: A) {
         i.write(newValue)
     }
     
-    public func change(_ by: (inout A) -> ()) {
+    public func change<B>(_ by: (inout A) -> B) -> B {
         var copy = i.value!
-        by(&copy)
+        let result = by(&copy)
         i.write(copy)
+        return result
+    }
+    
+    public subscript<B: Equatable>(keyPath: KeyPath<A,B>) -> I<B> {
+        return i.map { $0[keyPath: keyPath] }
     }
 }
 
-public extension Var where A: Equatable {
+public extension Input where A: Equatable {
     public convenience init(_ value: A) {
-        self.init(value, eq: ==)
+        self.init(eq: ==, value)
     }
 }
 
 
-extension I where A: Equatable {
-    convenience init(value: A) {
-        self.init(value: value, eq: ==)
-    }
+protocol AnyI: class, Node {
+    var firedAlready: Bool { get set }
+    var strongReferences: Register<Any> { get set }
+    var height: Height { get }
 }
 
 public final class I<A>: AnyI, Node {
-    fileprivate var value: A!
+    internal(set) public var value: A! // todo this will not be public!
     var observers = Register<Observer>()
     var readers: Register<Reader> = Register()
     var height: Height {
-        return readers.values.map { $0.height }.lub.incremented()
+        return readers.values.map { $0.height }.leastUpperBound.incremented()
     }
     var firedAlready: Bool = false
     var strongReferences: Register<Any> = Register()
     var eq: (A,A) -> Bool
-    private let constant: Bool
+    private var constant: Bool
     
-    init(value: A, eq: @escaping (A, A) -> Bool) {
+    init(eq: @escaping (A, A) -> Bool, value: A) {
         self.value = value
         self.eq = eq
         self.constant = false
     }
-    
-    fileprivate init(eq: @escaping (A,A) -> Bool) {
+
+    init(eq: @escaping (A,A) -> Bool) {
         self.eq = eq
         self.constant = false
     }
@@ -241,106 +229,97 @@ public final class I<A>: AnyI, Node {
         }
     }
     
-    /// Returns `self`
-    @discardableResult
-    fileprivate func write(_ value: A) -> I<A> {
-        assert(!constant)
+    func _writeHelper(_ value: A) -> I<A> {
         if let existing = self.value, eq(existing, value) { return self }
-        
         self.value = value
+
         guard !firedAlready else { return self }
         firedAlready = true
-        Queue.shared.enqueue(Array(readers.values))
-        Queue.shared.enqueue(Array(observers.values))
+        let r: [Edge] = Array(readers.values)
+        Queue.shared.enqueue(r)
+        Queue.shared.enqueue(observers.values)
         Queue.shared.fired(self)
         Queue.shared.process()
         return self
     }
-    
-    func read(_ read: @escaping (A) -> Node) -> (Reader, Disposable) {
-        let reader = Reader(read: {
-            read(self.value)
-        })
-        if constant {
-            return (reader, Disposable { })
-        }
-        let token = readers.add(reader)
-        return (reader, Disposable {
-            self.readers[token]?.invalidated = true
-            self.readers.remove(token)
-        })
+    /// Returns `self`
+    @discardableResult
+    func write(_ value: A, file: StaticString = #file, line: UInt = #line) -> I<A> {
+        precondition(!constant, file: file, line: line)
+        return _writeHelper(value)
+    }
+
+    @discardableResult
+    func write(constant value: A, file: StaticString = #file, line: UInt = #line) -> I<A> {
+        assert(!constant, file: file, line: line)
+        self.constant = true // this node will never fire again
+        return _writeHelper(value)
     }
     
+    func addReader(_ reader: Reader) -> Disposable {
+        let token = readers.add(reader)
+        return Disposable {
+            reader.invalidated = true
+            self.readers.remove(token)
+        }
+    }
+    
+    /// The `target` strongly references the reader. If the target goes away, the reader will be removed as well.
+    /// The `read` needs to return a `Node`: this is the direct dependency of the read function (used to ultimately compute the topological order).
     @discardableResult
-    func read(target: AnyI, _ read: @escaping (A) -> Node) -> Reader {
-        let (reader, disposable) = self.read(read)
+    func read(target: AnyI, _ read: @escaping (A) -> Node) -> AnyReader {
+        let reader = AnyReader { read(self.value) }
+        guard !constant else {
+            return reader
+        }
+        let disposable = addReader(reader)
         target.strongReferences.add(disposable)
         return reader
     }
-    
-    func connect<B>(result: I<B>, _ transform: @escaping (A) -> B) {
-        read(target: result) { value in
-            result.write(transform(value))
+
+    @discardableResult
+    func read(_ read: @escaping (A) -> Node) -> (AnyReader, Disposable?) {
+        let reader = AnyReader { read(self.value) }
+        guard !constant else {
+            return (reader, nil)
         }
+        let disposable = addReader(reader)
+        return (reader, disposable)
     }
-    
-    public func map<B: Equatable>(_ transform: @escaping (A) -> B) -> I<B> {
-        let result = I<B>(eq: ==)
-        connect(result: result, transform)
-        return result
-    }
-    
-    // convenience for optionals
-    public func map<B: Equatable>(_ transform: @escaping (A) -> B?) -> I<B?> {
-        let result = I<B?>(eq: ==)
-        connect(result: result, transform)
-        return result
-    }
-    
-    // convenience for arrays
-    public func map<B: Equatable>(_ transform: @escaping (A) -> [B]) -> I<[B]> {
-        let result = I<[B]>(eq: ==)
-        connect(result: result, transform)
-        return result
-    }
-    
-    // convenience for other types
+
     public func map<B>(eq: @escaping (B,B) -> Bool, _ transform: @escaping (A) -> B) -> I<B> {
-        let result = I<B>(eq: eq)
-        connect(result: result, transform)
-        return result
-    }
-    
-    //    // convenience for other types
-    //    func map<B>(eq: @escaping (B,B) -> Bool, _ transform: @escaping (A) -> B?) -> I<B?> {
-    //        let result = I<B?>(eq: {
-    //            switch ($0, $1) {
-    //            case (nil,nil): return true
-    //            case let (x?, y?): return eq(x,y)
-    //            default: return false
-    //            }
-    //        })
-    //        connect(result: result, transform)
-    //        return result
-    //    }
-    
-    
-    public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
-        let result = I<B>(eq: ==)
-        var previous: Disposable?
-        // todo: we might be able to avoid this closure by having a custom "flatMap" reader
-        read(target: result) { value in
-            previous = nil
-            let (reader, disposable) = transform(value).read { value2 in
-                result.write(value2)
-            }
-            let token = result.strongReferences.add(disposable)
-            previous = Disposable { result.strongReferences.remove(token) }
-            return reader
+        guard !constant else {
+            return I<B>(constant: transform(self.value))
         }
+        
+        let result = I<B>(eq: eq)
+        let reader = MapReader(source: self, transform: transform, target: result)
+        result.strongReferences.add(addReader(reader))
         return result
     }
     
+    public func flatMap<B>(eq: @escaping (B,B) -> Bool, _ transform: @escaping (A) -> I<B>) -> I<B> {
+        guard !constant else {
+            return transform(self.value)
+        }
+        let result = I<B>(eq: eq) // todo: could we somehow pull eq out of the transform's result?
+        let reader = FlatMapReader(source: self, transform: transform, target: result)
+        result.strongReferences.add(addReader(reader))
+        return result
+    }
+    
+    func mutate(_ transform: (inout A) -> ()) {
+        var newValue = value!
+        transform(&newValue)
+        write(newValue)
+    }
+}
+
+extension I {
+    public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
+        return flatMap(eq: ==, transform)
+    }
+
     public func zip2<B: Equatable,C: Equatable>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {
         return flatMap { value in other.map { with(value, $0) } }
     }
@@ -353,65 +332,89 @@ public final class I<A>: AnyI, Node {
         }
     }
     
-    
-    func mutate(_ transform: (inout A) -> ()) {
-        var newValue = value!
-        transform(&newValue)
-        write(newValue)
+    public subscript<R: Equatable>(keyPath: KeyPath<A,R>) -> I<R> {
+        return map { $0[keyPath: keyPath] }
     }
-}
-
-public func if_<A: Equatable>(_ condition: I<Bool>, then l: I<A>, else r: I<A>) -> I<A> {
-    return condition.flatMap { $0 ? l : r }
-}
-
-public func &&(l: I<Bool>, r: I<Bool>) -> I<Bool> {
-    return l.zip2(r, { $0 && $1 })
-}
-
-public func ||(l: I<Bool>, r: I<Bool>) -> I<Bool> {
-    return l.zip2(r, { $0 || $1 })
-}
-
-public prefix func !(l: I<Bool>) -> I<Bool> {
-    return l.map { !$0 }
-}
-
-public func ==<A>(l: I<A>, r: I<A>) -> I<Bool> where A: Equatable {
-    return l.zip2(r, ==)
-}
-
-// The code below isn't really ready to be public yet... need to think more about this.
-enum IList<A>: Equatable where A: Equatable {
-    case empty
-    case cons(A, I<IList<A>>)
     
-    mutating func append(_ value: A) {
-        switch self {
-        case .empty: self = .cons(value, I(value: .empty))
-        case .cons(_, let tail): tail.value.append(value)
+    // All of the below goes away with conditional conformance
+
+    // convenience for optionals
+    public subscript<R: Equatable>(keyPath: KeyPath<A,R?>) -> I<R?> {
+        return map(eq: ==, { $0[keyPath: keyPath] })
+    }
+
+    // convenience for equatable
+    public func map<B: Equatable>(_ transform: @escaping (A) -> B) -> I<B> {
+        return map(eq: ==, transform)
+    }
+    
+    // convenience for optionals
+    public func map<B: Equatable>(_ transform: @escaping (A) -> B?) -> I<B?> {
+        return map(eq: ==, transform)
+    }
+    
+    // convenience for arrays
+    public func map<B: Equatable>(_ transform: @escaping (A) -> [B]) -> I<[B]> {
+        return map(eq: ==, transform)
+    }
+    
+    // convenience for tuples
+    public func map<B: Equatable, C: Equatable>(_ transform: @escaping (A) -> (B, C)) -> I<(B,C)> {
+        return map(eq: ==, transform)
+    }
+
+    public func map<B: Equatable, C: Equatable>(_ transform: @escaping (A) -> [(B, C)]) -> I<[(B,C)]> {
+        return map(eq: lift(==), transform)
+    }
+
+    // convenience for optional tuples
+    public func map<B: Equatable, C: Equatable>(_ transform: @escaping (A) -> (B, C)?) -> I<(B,C)?> {
+        return map(eq: lift(==), transform)
+    }
+
+    public func reduce<B: Equatable>(_ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        var previous = initial
+
+        return map { value in
+            let result = transform(previous, value)
+
+            defer { previous = result }
+
+            return result
         }
     }
-    
-    func reduceH<B>(destination: I<B>, initial: B, combine: @escaping (A,B) -> B) -> Node {
-        switch self {
-        case .empty:
-            destination.write(initial)
-            return destination
-        case let .cons(value, tail):
-            let intermediate = combine(value, initial)
-            return tail.read(target: destination) { newTail in
-                newTail.reduceH(destination: destination, initial: intermediate, combine: combine)
-            }
-        }
-    }
 }
 
-extension IList {
-    static func ==(l: IList<A>, r: IList<A>) -> Bool {
-        switch (l, r) {
-        case (.empty, .empty): return true
+public func lift<A>(_ f: @escaping (A,A) -> Bool) -> (A?,A?) -> Bool {
+    return { l, r in
+        switch (l,r) {
+        case (nil,nil): return true
+        case let (x?, y?): return f(x,y)
         default: return false
         }
     }
 }
+
+public func lift<A>(_ f: @escaping (A,A) -> Bool) -> ([A],[A]) -> Bool {
+    return { l, r in
+        l.count == r.count && !zip(l,r).lazy.map(f).contains(false)
+    }
+}
+
+
+
+extension I where A: Equatable {
+    convenience init() {
+        self.init(eq: ==)
+    }
+    convenience init(value: A) {
+        self.init(eq: ==, value: value)
+    }
+}
+
+extension I: Equatable {
+    public static func ==(lhs: I, rhs: I) -> Bool {
+        return lhs === rhs
+    }
+}
+

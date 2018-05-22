@@ -9,17 +9,17 @@ let y = Input(2)
 
 x.write(3)
 
-//: The second important type is I, an incremental value. I has three essential operations: map, flatMap and zip2. We'll go over them below.
-//: You can get an I from a Var by saying `.i`:
+//: The second important type is `I`, an incremental value. `I` has three essential operations: map, flatMap and zip2. We'll go over them below.
+//: You can get an `I` from a Input by saying `.i`:
 
 x.i
 y.i
 
-//: You can transform I values, for example, by mapping over them:
+//: You can transform `I` values, for example, by mapping over them:
 
 let doubled = x.i.map { $0 * 2 }
 
-//: You can also join two `I`'s together into a single I using zip2:
+//: You can also join two `I`'s together into a single `I` using zip2:
 
 let tripled = x.i.zip2(doubled, +)
 

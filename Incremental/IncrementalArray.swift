@@ -1,5 +1,3 @@
-import Foundation
-
 // todo shouldn't be public probably
 public func appendOnly<A>(_ value: A, to: I<IList<A>>) {
     concatOnly(.cons(value, I(value: .empty)), to: to)

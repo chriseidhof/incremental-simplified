@@ -1,5 +1,3 @@
-import Foundation
-
 // idea make certain properties configurable from "the outside". We could make an "ExternalConfig" struct which reads from JSON (and is settable by the server).
 
 public func if_<A: Equatable>(_ condition: I<Bool>, then l: I<A>, else r: I<A>) -> I<A> {

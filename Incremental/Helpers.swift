@@ -1,5 +1,3 @@
-import Foundation
-
 struct Register<A> {
     typealias Token = Int
     private var items: [Token:A] = [:]

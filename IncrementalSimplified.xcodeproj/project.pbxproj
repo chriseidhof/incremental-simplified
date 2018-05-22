@@ -12,17 +12,15 @@
 		830932662099A86C00E1BD2A /* Incremental+NSObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830932622099A86C00E1BD2A /* Incremental+NSObject.swift */; };
 		830932682099A89700E1BD2A /* Incremental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830932672099A89700E1BD2A /* Incremental.swift */; };
 		8309326A2099A8C500E1BD2A /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830932692099A8C500E1BD2A /* Helpers.swift */; };
-		83DC8D3C1F697DA5004861BF /* Incremental.h in Headers */ = {isa = PBXBuildFile; fileRef = 83DC8D3A1F697DA5004861BF /* Incremental.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		8309325F2099A86B00E1BD2A /* IncrementalArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IncrementalArray.swift; sourceTree = "<group>"; };
 		830932602099A86B00E1BD2A /* IncrementalStdLib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IncrementalStdLib.swift; sourceTree = "<group>"; };
 		830932622099A86C00E1BD2A /* Incremental+NSObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Incremental+NSObject.swift"; sourceTree = "<group>"; };
-		830932672099A89700E1BD2A /* Incremental.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Incremental.swift; path = "../../incremental-simplified-files/Incremental.swift"; sourceTree = "<group>"; };
+		830932672099A89700E1BD2A /* Incremental.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Incremental.swift; sourceTree = "<group>"; };
 		830932692099A8C500E1BD2A /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		83DC8D381F697DA5004861BF /* Incremental.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Incremental.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		83DC8D3A1F697DA5004861BF /* Incremental.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Incremental.h; sourceTree = "<group>"; };
 		83DC8D3B1F697DA5004861BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		83DC8D421F697E27004861BF /* Samples.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = Samples.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 /* End PBXFileReference section */
@@ -41,7 +39,6 @@
 		83DC8D391F697DA5004861BF /* Incremental */ = {
 			isa = PBXGroup;
 			children = (
-				83DC8D3A1F697DA5004861BF /* Incremental.h */,
 				83DC8D3B1F697DA5004861BF /* Info.plist */,
 				830932692099A8C500E1BD2A /* Helpers.swift */,
 				830932672099A89700E1BD2A /* Incremental.swift */,
@@ -76,7 +73,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83DC8D3C1F697DA5004861BF /* Incremental.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,13 +1,13 @@
 import Incremental
 
-//: There are two important types in this library. First of all, `Var`, which represents writable variables.
+//: There are two important types in this library. First of all, `Input`, which represents writable variables.
 
-let x = Var(1)
-let y = Var(2)
+let x = Input(1)
+let y = Input(2)
 
 //: You can change a writable variable, but you cannot read from it:
 
-x.set(3)
+x.write(3)
 
 //: The second important type is I, an incremental value. I has three essential operations: map, flatMap and zip2. We'll go over them below.
 //: You can get an I from a Var by saying `.i`:
@@ -26,19 +26,19 @@ let tripled = x.i.zip2(doubled, +)
 //: And you can observe `I` values. An observer gets called immediately (when you observe), or when the result changes.
 
 let disposable = tripled.observe { print($0) }
-x.set(5)
+x.write(5)
 
 //: You can also have "dynamic" incremental values, which depend on a previous value. This is done using `flatMap`:
 
 let xOrY = tripled.flatMap { $0 > 100 ? x.i : y.i }
 
 //: Incremental is smart about not doing unnecessary updates. For example, let's change `y` to `15` (which is the current value of `tripled`)
-y.set(15)
+y.write(15)
 
 let disposable2 = xOrY.observe { print("xOrY: \($0)") }
 
 //: If we set `x`, the observer for tripled will hit. But `xOrY` didn't change, so doesn't get fired.
-x.set(30)
+x.write(30)
 
 //: Unlike reactive libraries, Incremental doesn't have the problem of [glitches](https://en.wikipedia.org/wiki/Reactive_programming#Glitches). As an example, consider creating a + operator:
 
@@ -50,14 +50,14 @@ func +(lhs: I<Int>, rhs: I<Int>) -> I<Int> {
 //: We can safely write `x.i + x.i` and observe it, without having to worry about glitches.
 
 let disposable3 = (x.i+x.i).observe { print("x + x: \($0)") }
-x.set(7)
+x.write(7)
 
 //: (In every "normal" reactive library, the above would have printed "x + x: 60, x + x: 37, x + x: 14". The ghost value of 37 shouldn't be there, but is a glitch).
 //:
 //: Of course, + also works on two different variables:
 
 let disposable4 = (x.i+y.i).observe { print("x + y: \($0)") }
-y.set(10)
+y.write(10)
 
 //: Incremental solves this by doing a [topological sort](https://en.wikipedia.org/wiki/Topological_sorting) of the dependency graph.
 //:

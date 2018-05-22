@@ -417,7 +417,11 @@ extension ArrayWithHistory {
 }
 
 public func flatten<A>(_ array: [I<A>]) -> ArrayWithHistory<A> {
+#if swift(>=4.1)
+    let initial = array.compactMap { $0.value }
+#else
     let initial = array.flatMap { $0.value }
+#endif
     let result = ArrayWithHistory(initial)
     for (x, idx) in zip(array, array.indices) {
         x.read(target: result.changes) { change in

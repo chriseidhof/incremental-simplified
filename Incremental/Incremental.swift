@@ -8,12 +8,11 @@ final class Queue {
     var processing: Bool = false
     
     func enqueue<S: Sequence>(_ edges: S) where S.Element: Edge {
-        self.edges.append(contentsOf: edges.map { ($0, $0.height) })
-        self.edges.sort { $0.1 < $1.1 }
+        enqueue(edges.lazy.map { $0 as Edge })
     }
     
     func enqueue<S: Sequence>(_ edges: S) where S.Element == Edge {
-        self.edges.append(contentsOf: edges.map { ($0, $0.height) })
+        self.edges.append(contentsOf: edges.lazy.map { ($0, $0.height) })
         self.edges.sort { $0.1 < $1.1 }
     }
     

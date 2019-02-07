@@ -175,7 +175,7 @@ public final class Input<A> {
     }
 }
 
-public extension Input where A: Equatable {
+extension Input where A: Equatable {
     public convenience init(_ value: A) {
         self.init(eq: ==, value)
     }

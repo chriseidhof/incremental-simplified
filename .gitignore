@@ -1,0 +1,16 @@
+.build/
+.swiftpm/
+*.xcodeproj
+
+.hg
+.svn
+CVS
+
+.DS_Store
+Desktop.ini
+Thumbs.db
+ehthumbs.db
+*~
+.#*
+.*.swp
+.*.swo

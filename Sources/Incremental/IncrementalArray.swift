@@ -191,7 +191,7 @@ extension Array where Element: Equatable {
         for (element, oldIndex) in zip(self, self.indices).reversed() {
             // TODO calling index(of:) in each iteration is inefficient. we could use binary search here,
             // or provide an even more efficient implementation for elements that are hashable
-            let newIndex = newSorted.index(of: element)!
+            let newIndex = newSorted.firstIndex(of: element)!
             if oldIndex != newIndex {
                 result.append(.remove(at: oldIndex))
                 inserts.append((element, newIndex))
@@ -236,7 +236,7 @@ extension ArrayWithHistory { // mutation. we could either track this with a phan
     
     // todo I'm not sure if this is a good idea either... should only be used when mutating.
     public func index(of: A) -> Int? {
-        return unsafeLatestSnapshot.index(of: of)
+        return unsafeLatestSnapshot.firstIndex(of: of)
     }
     
     // todo not sure if this is the best idea
@@ -374,17 +374,17 @@ extension ArrayWithHistory {
                 switch change {
                 case let .insert(element, _):
                     // TODO this is inefficient, since we're sorting the original array each time to look up the index of the new element
-                    let newIndex = newLatest.sorted(by: currentSortOrder).index(of: element)!
+                    let newIndex = newLatest.sorted(by: currentSortOrder).firstIndex(of: element)!
                     appendOnly(.insert(element, at: newIndex), to: changesOut)
                 case let .remove(at: index):
                     let element = latest[index]
                     // TODO this is inefficient, since we're sorting the original array each time to look up the index of the new element
-                    let newIndex = latest.sorted(by: currentSortOrder).index(of: element)!
+                    let newIndex = latest.sorted(by: currentSortOrder).firstIndex(of: element)!
                     appendOnly(.remove(at: newIndex), to: changesOut)
                 case let .replace(with: element, at: index):
                     let previousElement = latest[index]
-                    let previousElementSortedIndex = latest.sorted(by: currentSortOrder).index(of: previousElement)!
-                    let newIndex = newLatest.sorted(by: currentSortOrder).index(of: element)!
+                    let previousElementSortedIndex = latest.sorted(by: currentSortOrder).firstIndex(of: previousElement)!
+                    let newIndex = newLatest.sorted(by: currentSortOrder).firstIndex(of: element)!
                     if previousElementSortedIndex == newIndex {
                         appendOnly(.replace(with: element, at: newIndex), to: changesOut)
                     } else {

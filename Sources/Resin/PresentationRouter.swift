@@ -40,16 +40,6 @@ public final class PresentationRouter<State: Equatable> {
 }
 
 extension PresentationRouter {
-    public func register(route: AnyPresentationRoute<ArbitraryState>) {
-        register(route: route.arbitrarilyUnfocused(to: State.self))
-    }
-
-    public func register(routes: [AnyPresentationRoute<ArbitraryState>]) {
-        register(routes: routes.map { $0.arbitrarilyUnfocused(to: State.self) })
-    }
-}
-
-extension PresentationRouter {
     public var typeErased: AnyPresentationRouter {
         return AnyPresentationRouter(presentationRouter: self)
     }
@@ -71,5 +61,13 @@ public final class AnyPresentationRouter {
 
     public func requiresModalPresentation(identifier: AnyPresentationIdentifier) -> Bool {
         return isModal(identifier)
+    }
+}
+
+extension PresentationRouter {
+    public func register(delivery: Parcel<State>.Delivery) {
+        delivery.presentationRoutes.forEach { route in
+            register(route: route)
+        }
     }
 }

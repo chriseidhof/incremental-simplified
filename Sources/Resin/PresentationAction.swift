@@ -77,7 +77,7 @@ internal struct PresentationReducer<State: Equatable>: Reducer {
     // swiftlint:disable:next cyclomatic_complexity
     public func reduce(action: PresentationAction, state: inout State) {
         guard let keyPath = action.target as? WritableKeyPath<State, [AnyPresentationIdentifier]> else {
-            print("Target key path %@ is not compatible with %@", "\(action.target)", "\(State.self)")
+            print("Target key path \(action.target) is not compatible with \(State.self))")
             return
         }
 
@@ -95,7 +95,7 @@ internal struct PresentationReducer<State: Equatable>: Reducer {
             stack = identifiers
         case .pop:
             guard !stack.isEmpty else {
-                print("Couldn't pop from %@", "\(action.target)")
+                print("Couldn't pop from \(action.target)")
                 return
             }
 
@@ -106,7 +106,7 @@ internal struct PresentationReducer<State: Equatable>: Reducer {
             }
         case .popToTargetCount(let count):
             guard stack.count >= count else {
-                print("Couldn't pop to target count from %@", "\(action.target)")
+                print("Couldn't pop to target count from \(action.target)")
                 return
             }
 
@@ -115,7 +115,7 @@ internal struct PresentationReducer<State: Equatable>: Reducer {
             stack.append(identifier)
         case .replace(let identifier):
             guard !stack.isEmpty else {
-                print("No identifiers to replace from %@", "\(action.target)")
+                print("No identifiers to replace from \(action.target)")
                 return
             }
 
@@ -148,12 +148,12 @@ internal struct SynchronousPresentationReducer<State: Equatable>: Reducer {
         switch action.presentation {
         case .popToTargetCount(let count):
             guard let keyPath = action.target as? WritableKeyPath<State, [AnyPresentationIdentifier]> else {
-                print("Target key path %@ is not compatible with %@", "\(action.target)", "\(State.self)")
+                print("Target key path \(action.target) is not compatible with \(State.self)")
                 return
             }
 
             guard state[keyPath: keyPath].count >= count else {
-                print("Couldn't pop to target count from %@", "\(action.target)")
+                print("Couldn't pop to target count from \(action.target)")
                 return
             }
 

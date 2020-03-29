@@ -51,7 +51,7 @@ public class Store<State: Equatable>: AnyStore {
 ///
 /// This allows us to give separate components a different view on the same
 /// data.
-public final class RootStore<State: Equatable, Environment>: Store<State> {
+public final class RootStore<State: Equatable>: Store<State> {
     var middleware: [AnyMiddleware<State>] = []
 
     var reducers: [TypeIdentifier: AnyReducer<State>] = [:]
@@ -59,8 +59,6 @@ public final class RootStore<State: Equatable, Environment>: Store<State> {
     private let stateInput: Input<State>
 
     private var isCurrentlyExecutingAction = false
-
-    public let environment: Environment
 
     private var underlyingState: State {
         didSet {
@@ -73,12 +71,11 @@ public final class RootStore<State: Equatable, Environment>: Store<State> {
     /// - Parameters:
     ///   - state: The initial state of the store. All further modifications to
     ///            this state will be made by handling actions.
-    public init(state: State, environment: Environment) {
-        self.environment = environment
+    public init(state: State) {
         self.stateInput = Input(state)
         self.underlyingState = state
 
-        super.init(state: stateInput.i, parent: nil, keyPath: \State.keyPathSelf)
+        super.init(state: stateInput.i, parent: nil, keyPath: \State.self)
     }
 
     public func add(middleware: AnyMiddleware<State>) {
@@ -87,19 +84,13 @@ public final class RootStore<State: Equatable, Environment>: Store<State> {
         self.middleware.append(middleware)
     }
 
-    public func add(middleware factory: MiddlewareFactory<State, Environment>) {
-        let middleware = factory.make(state: self.state, environment: environment)
-
-        add(middleware: middleware)
-    }
-
     public func add(reducer: AnyReducer<State>) {
         reducers[reducer.actionIdentifier] = reducer
     }
 
     public override func handle(_ action: Action, context: ActionContext) {
         guard !isCurrentlyExecutingAction else {
-            print("Action caused another Action to dispatch before completing")
+            print("Error: Action caused another Action to dispatch before completing")
             return
         }
 
@@ -108,7 +99,7 @@ public final class RootStore<State: Equatable, Environment>: Store<State> {
             isCurrentlyExecutingAction = false
         }
 
-        print("Handling action %@", String(describing: type(of: action)))
+        print("Handling action \(type(of: action))")
 
         // Run our Action through the middleware, if at any step action gets
         // caught, abort.
@@ -125,7 +116,7 @@ public final class RootStore<State: Equatable, Environment>: Store<State> {
         dispatchPrecondition(condition: .onQueue(.main))
 
         guard let reducer = reducers[TypeIdentifier(value: action)] else {
-            print("Action dispatched in %@:%i was not handled.", context.file, context.line)
+            print("Action dispatched in \(context.file):\(context.line) was not handled.")
             return
         }
 

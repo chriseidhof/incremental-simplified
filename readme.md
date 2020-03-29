@@ -47,8 +47,8 @@ tbd
 
 ### Parcel
 
-Each part (usually a Swift module) of an app has a combination of `Reducer`s, `Middleware`, and `NavigationRoute`s to implement its features. All of these needs to be registered with the store. In order to facilitate that, a `Parcel` can wrap a combination of all of these. The parcel can then be registered with the store, which in turn will register all of its `Reducer`s, `Middleware`, and `NavigationRoute`s.
+Each part (usually a Swift module) of an app has a combination of `Reducer`s, `Middleware`, and `PresentationRoute`s to implement its features. All of these needs to be registered with the store. In order to facilitate that, a `Parcel` can wrap a combination of all of these. The parcel can then be registered with the store, which in turn will register all of its `Reducer`s, `Middleware`, and `PresentationRoute`s.
 
-The benefit of this, is that the app itself only needs to register the `Parcel`s that it uses, and doesn’t have to know which `Reducer`s, `Middleware`, and `NavigationRoute`s it needs. This makes updating code within a specific part / domain of an app easier. If, e.g. a new `Middleware` is added, it just needs to be added to its `Parcel`, and will then automatically be registered with the app.
+The benefit of this, is that the app itself only needs to register the `Parcel`s that it uses, and doesn’t have to know which `Reducer`s, `Middleware`, and `PresentationRoute`s it needs. This makes updating code within a specific part / domain of an app easier. If, e.g. a new `Middleware` is added, it just needs to be added to its `Parcel`, and will then automatically be registered with the app.
 
 Additionally, a module that has a parcel, does not have to expose its `Reducer`s, etc. as `public`. They only need to be added to the module’s `Parcel`. This reduces the API surface of a module.

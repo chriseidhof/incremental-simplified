@@ -39,7 +39,7 @@ public struct ImplicitPresentationAction: Action {
     }
 }
 
-internal final class ImplicitPresentationMiddleware: Middleware<ImplicitPresentationAction, Any, ArbitraryState> {
+internal final class ImplicitPresentationMiddleware: Middleware<ImplicitPresentationAction, ArbitraryState> {
     override func transform(action: ImplicitPresentationAction, context: ActionContext, state: ArbitraryState) -> Action? {
         guard let viewController = context.viewController else {
             fatalError("Action \(action) was not dispatched from a view controller context in \(context.file):\(context.line).")
@@ -93,12 +93,6 @@ internal final class ImplicitPresentationMiddleware: Middleware<ImplicitPresenta
 public extension RootStore {
     /// TODO: We should probably just install this by default.
     func addImplicitNavigationMiddleware() {
-        let keyPath = ArbitraryState.arbitraryKeyPath() as WritableKeyPath<State, ArbitraryState>
-
-        let factory: MiddlewareFactory<State, Environment> = ImplicitPresentationMiddleware.factory
-            .lift { $0 as Any }
-            .unfocused(by: keyPath)
-
-        add(middleware: factory)
+        add(middleware: ImplicitPresentationMiddleware().unfocused())
     }
 }

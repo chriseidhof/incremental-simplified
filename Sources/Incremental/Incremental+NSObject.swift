@@ -66,9 +66,15 @@ extension IBox where V: NSObject {
 
 extension NSObjectProtocol where Self: NSObject {
     /// One-way binding
-    public func bind<Value>(keyPath: ReferenceWritableKeyPath<Self, Value>, _ i: I<Value>) -> Disposable {
-        return i.observe {
-            self[keyPath: keyPath] = $0
+    public func bind<Value>(keyPath: ReferenceWritableKeyPath<Self, Value>, to i: I<Value>) -> Disposable {
+        return i.observe { [weak self] in
+            self?[keyPath: keyPath] = $0
+        }
+    }
+
+    public func bind<Value>(keyPath: ReferenceWritableKeyPath<Self, Value?>, to i: I<Value>) -> Disposable {
+        return i.observe { [weak self] in
+            self?[keyPath: keyPath] = $0
         }
     }
 }

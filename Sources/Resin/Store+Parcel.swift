@@ -1,16 +1,12 @@
 import Foundation
 
 extension RootStore {
-    public func integrate(parcel: Parcel<State, Environment>) {
-        for middleware in parcel.legacyMiddleware {
+    public func integrate(delivery: Parcel<State>.Delivery) {
+        for middleware in delivery.middlewares {
             add(middleware: middleware)
         }
 
-        for factory in parcel.middleware {
-            add(middleware: factory)
-        }
-
-        for reducer in parcel.reducers {
+        for reducer in delivery.reducers {
             add(reducer: reducer)
         }
     }

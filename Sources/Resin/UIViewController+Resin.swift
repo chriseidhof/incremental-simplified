@@ -1,5 +1,6 @@
 import UIKit
 
+private var actionHandlerKey = "actionHandlerKey"
 private var presentationRouterKey = "presentationRouterKey"
 
 extension UIViewController {
@@ -10,10 +11,10 @@ extension UIViewController {
     /// available to the entire view tree owned by the receiver.
     public var actionHandler: ActionHandler? {
         get {
-            return view.actionHandler
+            return objc_getAssociatedObject(self, &actionHandlerKey) as? ActionHandler ?? parent?.actionHandler
         }
         set {
-            view.actionHandler = newValue
+            objc_setAssociatedObject(self, &actionHandlerKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 

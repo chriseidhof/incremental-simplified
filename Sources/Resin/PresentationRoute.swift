@@ -47,7 +47,7 @@ extension PresentationRoute where State == ArbitraryState {
     }
 
     public func makeViewController(identifier: Identifier) -> ViewController {
-        let store = RootStore(state: ArbitraryState(), environment: Void())
+        let store = RootStore(state: ArbitraryState())
 
         return make(identifier, store)
     }
@@ -95,12 +95,12 @@ extension AnyPresentationRoute where State == ArbitraryState {
     public func makeViewController(identifier: AnyPresentationIdentifier) -> UIViewController {
         precondition(underlyingTypeIdentifier == identifier.underlyingTypeIdentifier)
 
-        let store = RootStore(state: ArbitraryState(), environment: Void())
+        let store = RootStore(state: ArbitraryState())
 
         return make(identifier, store)
     }
 
-    public func arbitrarilyUnfocused<Superstate>(to superstate: Superstate.Type) -> AnyPresentationRoute<Superstate> {
+    public func unfocused<Superstate>(to superstate: Superstate.Type = Superstate.self) -> AnyPresentationRoute<Superstate> {
         let make = self.make
 
         return AnyPresentationRoute<Superstate>(isModal: isModal, underlyingTypeIdentifier: underlyingTypeIdentifier) { identifier, store in

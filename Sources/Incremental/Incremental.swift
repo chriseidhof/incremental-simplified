@@ -359,6 +359,7 @@ extension I where A: Equatable {
     convenience init() {
         self.init(eq: ==)
     }
+    
     convenience init(value: A) {
         self.init(eq: ==, value: value)
     }

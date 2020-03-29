@@ -1,7 +1,6 @@
 import Foundation
 
-
-// Could this be in a conditional block? Only works for Foundation w/ ObjC runtime
+@available(macOS 10, iOS 10, *)
 extension NSObjectProtocol where Self: NSObject {
     public subscript<Value>(_ keyPath: KeyPath<Self, Value>) -> I<Value> where Value: Equatable {
         let i: I<Value> = I(value: self[keyPath: keyPath])
@@ -51,7 +50,7 @@ public final class IBox<V>: Equatable {
     }
 }
 
-
+@available(macOS 10, iOS 10, *)
 extension IBox where V: NSObject {
     public subscript<A>(keyPath: KeyPath<V,A>) -> I<A> where A: Equatable {
         get {
@@ -64,6 +63,7 @@ extension IBox where V: NSObject {
     }
 }
 
+@available(macOS 10, iOS 10, *)
 extension NSObjectProtocol where Self: NSObject {
     /// One-way binding
     public func bind<Value>(keyPath: ReferenceWritableKeyPath<Self, Value>, _ i: I<Value>) -> Disposable {

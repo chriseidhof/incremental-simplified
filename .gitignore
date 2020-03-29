@@ -1,6 +1,5 @@
 .build/
 .swiftpm/
-*.xcodeproj
 
 .hg
 .svn

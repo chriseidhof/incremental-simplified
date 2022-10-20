@@ -304,6 +304,18 @@ public final class I<A>: AnyI, Node {
         result.strongReferences.add(addReader(reader))
         return result
     }
+
+    public func reduce<B>(eq: @escaping (B,B) -> Bool, _ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        var previous = initial
+
+        return map(eq: eq) { value in
+            let result = transform(previous, value)
+
+            defer { previous = result }
+
+            return result
+        }
+    }
     
     func mutate(_ transform: (inout A) -> ()) {
         var newValue = value!
@@ -320,6 +332,10 @@ extension I {
     
     public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
         return flatMap(eq: ==, transform)
+    }
+
+    public func reduce<B: Equatable>(_ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        return reduce(eq: ==, initial, transform)
     }
 
     public func zip2<B: Equatable,C: Equatable>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {

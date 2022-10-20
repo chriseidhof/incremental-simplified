@@ -189,7 +189,7 @@ protocol AnyI: class, Node {
 }
 
 public final class I<A>: AnyI, Node {
-    internal(set) public var value: A! // todo this will not be public!
+    var value: A!
     var observers = Register<Observer>()
     var readers: Register<Reader> = Register()
     var height: Height {
@@ -304,6 +304,18 @@ public final class I<A>: AnyI, Node {
         result.strongReferences.add(addReader(reader))
         return result
     }
+
+    public func reduce<B>(eq: @escaping (B,B) -> Bool, _ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        var previous = initial
+
+        return map(eq: eq) { value in
+            let result = transform(previous, value)
+
+            defer { previous = result }
+
+            return result
+        }
+    }
     
     func mutate(_ transform: (inout A) -> ()) {
         var newValue = value!
@@ -312,9 +324,18 @@ public final class I<A>: AnyI, Node {
     }
 }
 
+
 extension I {
+    public func map<B: Equatable>(_ transform: @escaping (A) -> B) -> I<B> {
+        return map(eq: ==, transform)
+    }
+    
     public func flatMap<B: Equatable>(_ transform: @escaping (A) -> I<B>) -> I<B> {
         return flatMap(eq: ==, transform)
+    }
+
+    public func reduce<B: Equatable>(_ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
+        return reduce(eq: ==, initial, transform)
     }
 
     public func zip2<B: Equatable,C: Equatable>(_ other: I<B>, _ with: @escaping (A,B) -> C) -> I<C> {
@@ -331,54 +352,6 @@ extension I {
     
     public subscript<R: Equatable>(keyPath: KeyPath<A,R>) -> I<R> {
         return map { $0[keyPath: keyPath] }
-    }
-    
-    // All of the below goes away with conditional conformance
-
-    // convenience for optionals
-    public subscript<R: Equatable>(keyPath: KeyPath<A,R?>) -> I<R?> {
-        return map(eq: ==, { $0[keyPath: keyPath] })
-    }
-
-    // convenience for equatable
-    public func map<B: Equatable>(_ transform: @escaping (A) -> B) -> I<B> {
-        return map(eq: ==, transform)
-    }
-    
-    // convenience for optionals
-    public func map<B: Equatable>(_ transform: @escaping (A) -> B?) -> I<B?> {
-        return map(eq: ==, transform)
-    }
-    
-    // convenience for arrays
-    public func map<B: Equatable>(_ transform: @escaping (A) -> [B]) -> I<[B]> {
-        return map(eq: ==, transform)
-    }
-    
-    // convenience for tuples
-    public func map<B: Equatable, C: Equatable>(_ transform: @escaping (A) -> (B, C)) -> I<(B,C)> {
-        return map(eq: ==, transform)
-    }
-
-    public func map<B: Equatable, C: Equatable>(_ transform: @escaping (A) -> [(B, C)]) -> I<[(B,C)]> {
-        return map(eq: lift(==), transform)
-    }
-
-    // convenience for optional tuples
-    public func map<B: Equatable, C: Equatable>(_ transform: @escaping (A) -> (B, C)?) -> I<(B,C)?> {
-        return map(eq: lift(==), transform)
-    }
-
-    public func reduce<B: Equatable>(_ initial: B, _ transform: @escaping (B, A) -> B) -> I<B> {
-        var previous = initial
-
-        return map { value in
-            let result = transform(previous, value)
-
-            defer { previous = result }
-
-            return result
-        }
     }
 }
 
@@ -398,12 +371,11 @@ public func lift<A>(_ f: @escaping (A,A) -> Bool) -> ([A],[A]) -> Bool {
     }
 }
 
-
-
 extension I where A: Equatable {
     convenience init() {
         self.init(eq: ==)
     }
+    
     convenience init(value: A) {
         self.init(eq: ==, value: value)
     }

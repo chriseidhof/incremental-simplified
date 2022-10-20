@@ -1,6 +1,9 @@
+/.build
+/Packages
+/*.xcodeproj
+xcuserdata/
 .build/
 .swiftpm/
-
 .hg
 .svn
 CVS

@@ -47,7 +47,3 @@ public func ==<A>(l: I<A>, r: I<A>) -> I<Bool> where A: Equatable {
 public func ==<A>(l: I<A>, r: A) -> I<Bool> where A: Equatable {
     return l.map { $0 == r }
 }
-
-public func ==<A>(l: I<A?>, r: A?) -> I<Bool> where A: Equatable {
-    return l.map { $0 == r }
-}
